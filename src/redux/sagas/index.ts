@@ -1,27 +1,51 @@
-import { put, takeEvery, takeLatest, takeLeading } from 'redux-saga/effects';
-import { Type } from '../types';
+/*
+  call - (блокирующий, как await) выполняет переданную функцию. Если функция вернет promise,
+  приостанавливает сагу до тех пор пока promise не вызовет resolve
+  put - диспатчит переданный action
+  takeEvery - создает и запускает worker сагу на каждый диспатч данного action
+  fork - (неблокирующий) - эффект, который указывает iddleware выполнить неблокирующий вызов функции.
+  управляет параллелизмом между сагами
+*/
+import { call, put, takeEvery, fork } from 'redux-saga/effects';
+import axios, { AxiosResponse } from 'axios';
+import { fetchTodo, fetchUser } from '../reducers/actions';
+import { ITodo, IUser } from '../types';
+import { CLICK } from '../types/actionTypes';
 
-const getPeople = async () => {
-  const request = await fetch('https://jsonplaceholder.cypress.io/todos/1');
+const getTodos = async (): Promise<AxiosResponse<ITodo[]>> =>
+  axios.get<ITodo[]>('https://jsonplaceholder.cypress.io/todos');
 
-  const data = await request.json();
+const getUsers = async (): Promise<AxiosResponse<IUser[]>> =>
+  axios.get<IUser[]>('https://jsonplaceholder.typicode.com/users');
 
-  return data;
+export default function* rootSaga() {
+  //рут сага, подписывается на watcher'a
+  yield watchClickSaga();
 }
 
 export function* watchClickSaga() {
-  yield takeEvery('click', workerSaga);
+  // При каждом событии клик, запускатеся workerSaga
+  yield takeEvery(CLICK, workerSaga);
 }
 
-export function* workerSaga(): Generator<Promise<any>> {
-  const data = yield getPeople();
-  console.log(data);
+export function* loadTodos() {
+  // Нужно указывать типо получаемых данных явно
+  // src: https://vhudyma-blog.eu/yield-expression-implicitly-results-in-an-any-type-because-its-containing-generator-lacks-a-return-type-annotation/
+  const todos: AxiosResponse<ITodo[]> = yield call(getTodos);
 
-  yield put({ type: Type.LOAD_USERS, payload: data });
+  yield put(fetchTodo(todos.data));
+}
+
+export function* loadUsers() {
+  const users: AxiosResponse<IUser[]> = yield call(getUsers);
+
+  yield put(fetchUser(users.data));
+}
+
+export function* workerSaga() {
+  yield fork(loadTodos);
+  yield fork(loadUsers);
 }
 
 
-export default function* rootSaga() {
-  yield watchClickSaga();
-}
 

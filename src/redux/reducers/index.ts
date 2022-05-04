@@ -1,13 +1,21 @@
-import { action, Type } from "../types";
+import { AnyAction } from "redux";
+import { IState, } from "../types";
+import { LOAD_TODOS, LOAD_USERS } from "../types/actionTypes";
 
 
-const initialState = {
-  users: []
+const initialState: IState = {
+  todos: [],
+  users: [],
 }
 
-export default function reducer(state = initialState, action: action) {
+export default function reducer(state: IState = initialState, action: AnyAction): IState {
   switch (action.type) {
-    case Type.LOAD_USERS:
+    case LOAD_TODOS:
+      return {
+        ...state,
+        todos: [...state.todos, ...action.payload]
+      }
+    case LOAD_USERS:
       return {
         ...state,
         users: [...state.users, ...action.payload]

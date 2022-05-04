@@ -1,25 +1,30 @@
-export interface IReducer {
-  state: object;
-  action?: action;
-};
-
-export interface action {
-  type: Type;
-  payload?: any;
-};
-
-export enum Type { 'LOAD_USERS', "test" };
-
-export interface IUser {
+import { LOAD_TODOS, LOAD_USERS } from "./actionTypes";
+export interface ITodo {
   userId: number;
   id: number;
   title: string;
   completed: boolean;
 }
 
+export type IUser = {
+  username: string;
+  id: number;
+  name: string;
+  email: string;
+}
 
-export interface IFetchTodo {
+export interface IState {
+  todos: ITodo[];
   users: IUser[];
 }
 
+export type IFetchTodoSuccess = {
+  type: typeof LOAD_TODOS;
+  payload: ITodo[];
+}
+
+export type IFetchUserSuccess = {
+  type: typeof LOAD_USERS;
+  payload: IUser[];
+}
 

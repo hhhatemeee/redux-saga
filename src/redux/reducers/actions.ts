@@ -1,3 +1,6 @@
-import { IFetchTodo, IUser, Type } from "../types";
+import { IFetchTodoSuccess, IFetchUserSuccess, ITodo, IUser, } from "../types";
+import { LOAD_TODOS, LOAD_USERS } from "../types/actionTypes";
 
-export const fetchTodo: IFetchTodo = (payload: IUser) => ({ type: Type.LOAD_USERS, payload });
+export const fetchTodo = (payload: ITodo[]): IFetchTodoSuccess => ({ type: LOAD_TODOS, payload });
+
+export const fetchUser = (payload: IUser[]): IFetchUserSuccess => ({ type: LOAD_USERS, payload });
