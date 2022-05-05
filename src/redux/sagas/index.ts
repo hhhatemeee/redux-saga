@@ -3,13 +3,16 @@
   приостанавливает сагу до тех пор пока promise не вызовет resolve
   put - диспатчит переданный action
   takeEvery - создает и запускает worker сагу на каждый диспатч данного action
-  fork - (неблокирующий) - эффект, который указывает iddleware выполнить неблокирующий вызов функции.
-  управляет параллелизмом между сагами
+  fork - (неблокирующий) - эффект, который указывает middleware выполнить неблокирующий вызов функции.
+  управляет параллелизмом между сагами. Если в одном форке будет ошибка, то остальные отменяются
+  spawn - создает паралельную задачу в корне саги, сам процесс не привязан к родителю. Не отменяются при ошибке.
+  join - заблокировать неблокирующую задачу и получить её результат.
+  select - позволяет получить данные из стора. Аналог useSelect/mapStateToProps. Неблокирующий эффект
 */
-import { call, put, takeEvery, fork } from 'redux-saga/effects';
+import { call, put, takeEvery, fork, spawn, select } from 'redux-saga/effects';
 import axios, { AxiosResponse } from 'axios';
 import { fetchTodo, fetchUser } from '../reducers/actions';
-import { ITodo, IUser } from '../types';
+import { IState, ITodo, IUser } from '../types';
 import { CLICK } from '../types/actionTypes';
 
 const getTodos = async (): Promise<AxiosResponse<ITodo[]>> =>
@@ -43,8 +46,11 @@ export function* loadUsers() {
 }
 
 export function* workerSaga() {
-  yield fork(loadTodos);
-  yield fork(loadUsers);
+  yield spawn(loadTodos);
+  yield spawn(loadUsers);
+
+  const store: IState = yield select((store) => store);
+  console.log('store', store);
 }
 
 

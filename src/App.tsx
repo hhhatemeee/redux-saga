@@ -1,9 +1,10 @@
-import React from 'react'
-import { useDispatch } from 'react-redux';
-import { useSelector } from 'react-redux'
-import './App.css'
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+
 import { RootState } from './redux';
 import { CLICK } from './redux/types/actionTypes';
+
+import './App.css';
 
 const App: React.FC = () => {
   const store = useSelector((store: RootState) => store);
@@ -18,4 +19,4 @@ const App: React.FC = () => {
   )
 }
 
-export default App
+export default App;
