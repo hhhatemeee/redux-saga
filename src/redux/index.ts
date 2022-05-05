@@ -1,18 +1,33 @@
 import createSagaMiddleware from "@redux-saga/core";
-import { configureStore } from "@reduxjs/toolkit";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import { createBrowserHistory } from "history";
+import { createReduxHistoryContext } from "redux-first-history";
 
-import reducer from "./reducers";
+import appReducer from "./reducers/index";
 import rootSaga from "./sagas";
 
 const sagaMiddleware = createSagaMiddleware();
 
+// FAQ: https://www.npmjs.com/package/redux-first-history
+
+const {
+  createReduxHistory,
+  routerMiddleware,
+  routerReducer
+} = createReduxHistoryContext({ history: createBrowserHistory() });
+
 const store = configureStore(
   {
-    reducer,
-    middleware: [sagaMiddleware],
+    reducer: combineReducers({
+      router: routerReducer,
+      app: appReducer,
+    }),
+    middleware: [sagaMiddleware, routerMiddleware],
     devTools: window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__,
   }
 );
+
+export const history = createReduxHistory(store);
 
 sagaMiddleware.run(rootSaga);
 

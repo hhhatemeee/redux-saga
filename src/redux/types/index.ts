@@ -1,4 +1,6 @@
-import { LOAD_TODOS, LOAD_USERS } from "./actionTypes";
+import { Reducer } from "react";
+import { RouterState } from "redux-first-history";
+import { LOAD_POST, LOAD_TODOS, LOAD_USERS } from "./actionTypes";
 export interface ITodo {
   userId: number;
   id: number;
@@ -13,9 +15,21 @@ export type IUser = {
   email: string;
 }
 
+export type IPost = {
+  body: string;
+  id: number;
+  title: string;
+  userId: number;
+};
 export interface IState {
   todos: ITodo[];
   users: IUser[];
+  posts: IPost[];
+}
+
+export interface IStore {
+  app: IState;
+  router: RouterState;
 }
 
 export type IFetchTodoSuccess = {
@@ -26,5 +40,9 @@ export type IFetchTodoSuccess = {
 export type IFetchUserSuccess = {
   type: typeof LOAD_USERS;
   payload: IUser[];
-}
+};
 
+export type IFetchPostSuccess = {
+  type: typeof LOAD_POST;
+  payload: IPost[];
+};

@@ -1,57 +1,85 @@
-/*
-  call - (блокирующий, как await) выполняет переданную функцию. Если функция вернет promise,
-  приостанавливает сагу до тех пор пока promise не вызовет resolve
-  put - диспатчит переданный action
-  takeEvery - создает и запускает worker сагу на каждый диспатч данного action
-  fork - (неблокирующий) - эффект, который указывает middleware выполнить неблокирующий вызов функции.
-  управляет параллелизмом между сагами. Если в одном форке будет ошибка, то остальные отменяются
-  spawn - создает паралельную задачу в корне саги, сам процесс не привязан к родителю. Не отменяются при ошибке.
-  join - заблокировать неблокирующую задачу и получить её результат.
-  select - позволяет получить данные из стора. Аналог useSelect/mapStateToProps. Неблокирующий эффект
-*/
-import { call, put, takeEvery, fork, spawn, select } from 'redux-saga/effects';
-import axios, { AxiosResponse } from 'axios';
-import { fetchTodo, fetchUser } from '../reducers/actions';
-import { IState, ITodo, IUser } from '../types';
-import { CLICK } from '../types/actionTypes';
+import { all, call, spawn } from "redux-saga/effects";
 
-const getTodos = async (): Promise<AxiosResponse<ITodo[]>> =>
-  axios.get<ITodo[]>('https://jsonplaceholder.cypress.io/todos');
+import loadBasicData from "./initialSagas";
+import pageLoaderSaga from "./pageLoaderSaga";
 
-const getUsers = async (): Promise<AxiosResponse<IUser[]>> =>
-  axios.get<IUser[]>('https://jsonplaceholder.typicode.com/users');
 
 export default function* rootSaga() {
-  //рут сага, подписывается на watcher'a
-  yield watchClickSaga();
-}
+  const sagas = [loadBasicData, pageLoaderSaga];
 
-export function* watchClickSaga() {
-  // При каждом событии клик, запускатеся workerSaga
-  yield takeEvery(CLICK, workerSaga);
-}
+  // Обработка ошибок
+  const retrySagas = sagas.map((saga) => {
+    return spawn(function* () {
+      while (1) {
+        try {
+          yield call(saga); // блокирующий вызов, чтобы корректно отследить ошибку
+          break;
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    })
+  });
 
-export function* loadTodos() {
-  // Нужно указывать типо получаемых данных явно
-  // src: https://vhudyma-blog.eu/yield-expression-implicitly-results-in-an-any-type-because-its-containing-generator-lacks-a-return-type-annotation/
-  const todos: AxiosResponse<ITodo[]> = yield call(getTodos);
-
-  yield put(fetchTodo(todos.data));
-}
-
-export function* loadUsers() {
-  const users: AxiosResponse<IUser[]> = yield call(getUsers);
-
-  yield put(fetchUser(users.data));
-}
-
-export function* workerSaga() {
-  yield spawn(loadTodos);
-  yield spawn(loadUsers);
-
-  const store: IState = yield select((store) => store);
-  console.log('store', store);
+  yield all(retrySagas);
 }
 
 
 
+
+
+
+/*
+  1 способ создания корневой саги
+  все 3 саги запустятся параллельно, при этом рут сага будет заблокирована
+  пока не произойдет вызов 3 саг. Если хоть одна из них является блокирующей, то
+  к дальнейшему коду перейдет только тогда, когда все 3 саги завершаться.
+  Если любая из 3 саг зафейлится, то все последущие процессы будут отменены и сама рут сага.
+*/
+// export default function* rootSaga() {
+//   yield [
+//     saga1(),
+//     saga2(),
+//     saga3(),
+//   ]
+//   console.log('Root Saga');
+// }
+
+/*
+  2 способ.
+  fork всегда создает неблокирующий вызов. Код после массива с fork выполняется сразу.
+  С ошибками точно также, как и в 1 способе.
+*/
+// export default function* rootSaga() {
+//   console.log('Root Saga');
+
+//   yield [
+//     fork(saga1),
+//     fork(saga2),
+//     fork(saga3),
+//   ]
+// }
+
+/*
+  3 способ.
+  При ошибке одной из саг, остальные будут отлично работать
+*/
+// export default function* rootSaga() {
+//   const sagas = [saga1, saga2, saga3];
+
+//   // Обработка ошибок
+//   const retrySagas = sagas.map((saga) => {
+//     return spawn(function* () {
+//       while (1) {
+//         try {
+//           yield call(saga); // блокирующий вызов, чтобы корректно отследить ошибку
+//           break;
+//         } catch (e) {
+//           console.log(e);
+//         }
+//       }
+//     })
+//   });
+
+//   yield all(retrySagas);
+// } 

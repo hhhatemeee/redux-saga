@@ -1,11 +1,12 @@
 import { AnyAction } from "redux";
 
 import { IState, } from "../types";
-import { LOAD_TODOS, LOAD_USERS } from "../types/actionTypes";
+import { LOAD_POST, LOAD_TODOS, LOAD_USERS } from "../types/actionTypes";
 
 const initialState: IState = {
   todos: [],
   users: [],
+  posts: [],
 }
 
 /* src: https://redux.js.org/usage/usage-with-typescript
@@ -14,6 +15,11 @@ const initialState: IState = {
 */
 export default function reducer(state: IState = initialState, action: AnyAction): IState {
   switch (action.type) {
+    case LOAD_POST:
+      return {
+        ...state,
+        posts: [...state.posts, ...action.payload],
+      }
     case LOAD_TODOS:
       return {
         ...state,
