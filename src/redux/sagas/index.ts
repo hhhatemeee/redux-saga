@@ -5,9 +5,10 @@ import pageLoaderSaga from "./pageLoaderSaga";
 
 
 export default function* rootSaga() {
+  //складываются все саги
   const sagas = [loadBasicData, pageLoaderSaga];
 
-  // Обработка ошибок
+  // Доп. Обработка ошибок + рестарт
   const retrySagas = sagas.map((saga) => {
     return spawn(function* () {
       while (1) {

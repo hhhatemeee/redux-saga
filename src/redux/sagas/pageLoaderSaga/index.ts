@@ -3,7 +3,7 @@ import { apply, call, CallEffect, fork, ForkEffect, put, PutEffect, take, TakeEf
 import { fetchPosts } from "../../reducers/actions";
 import { IFetchPostSuccess, IPost } from "../../types";
 
-// явная типизация (в отличие от типизации в initialSaga.ts)
+// явная типизация (в отличие от типизации в initialSaga.ts (из-за дженерика))
 function* loadPostData(): Generator<CallEffect<Response> | PutEffect<IFetchPostSuccess>, void, any> {
   const response: Response = yield call(fetch, 'https://jsonplaceholder.typicode.com/posts');
 
