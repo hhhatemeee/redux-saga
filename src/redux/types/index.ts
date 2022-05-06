@@ -21,6 +21,21 @@ export type IPost = {
   title: string;
   userId: number;
 };
+
+export type IAlbum = {
+  userId: number,
+  id: number;
+  title: string;
+};
+
+export type IComment = {
+  postId: number,
+  id: number,
+  name: string,
+  email: string,
+  body: string,
+};
+
 export interface IState {
   todos: ITodo[];
   users: IUser[];
