@@ -1,11 +1,13 @@
 import { all, call, spawn } from "redux-saga/effects";
+import { loadOnAbort } from "./clickSagaAbort";
+import { loadOnAction } from "./clickSagaAction";
 
 import loadBasicData from "./initialSagas";
 import pageLoaderSaga from "./pageLoaderSaga";
 
 
 export default function* rootSaga() {
-  const sagas = [loadBasicData, pageLoaderSaga];
+  const sagas = [loadBasicData, pageLoaderSaga, loadOnAbort, loadOnAction];
 
   // Обработка ошибок
   const retrySagas = sagas.map((saga) => {

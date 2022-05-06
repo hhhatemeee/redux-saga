@@ -1,10 +1,10 @@
 import { LOCATION_CHANGE, RouterActions } from "redux-first-history";
-import { apply, call, CallEffect, fork, ForkEffect, put, PutEffect, take, TakeEffect } from "redux-saga/effects";
+import { apply, call, CallEffect, put, PutEffect, take, TakeEffect } from "redux-saga/effects";
 import { fetchPosts } from "../../reducers/actions";
 import { IFetchPostSuccess, IPost } from "../../types";
 
 // явная типизация (в отличие от типизации в initialSaga.ts)
-function* loadPostData(): Generator<CallEffect<Response> | PutEffect<IFetchPostSuccess>, void, any> {
+function* loadPostData(): Generator<CallEffect<Response> | PutEffect<IFetchPostSuccess>, void, Response & IPost[]> {
   const response: Response = yield call(fetch, 'https://jsonplaceholder.typicode.com/posts');
 
   // не уверен, т.к. data это IUser[], но лезут ошибки
@@ -13,7 +13,7 @@ function* loadPostData(): Generator<CallEffect<Response> | PutEffect<IFetchPostS
   yield put(fetchPosts(data));
 }
 
-export default function* pageLoaderSaga(): Generator<TakeEffect | CallEffect, any, RouterActions> {
+export default function* pageLoaderSaga(): Generator<TakeEffect | CallEffect, void, RouterActions> {
   // //Если отлавливаем через обычный useEffect в Post.tsx
   // yield takeEvery('LOAD_POST_DATA', loadPostData);
 
@@ -21,6 +21,8 @@ export default function* pageLoaderSaga(): Generator<TakeEffect | CallEffect, an
   // Постоянно отлавливаем событие на смену url, при совпадении юзаем воркер
   while (1) {
     const action: RouterActions = yield take(LOCATION_CHANGE);
+
+    console.log(action);
 
     if (action.payload.location.pathname.endsWith('post')) {
       yield call(loadPostData);
